@@ -100,14 +100,6 @@ The WiFi watchdog ensures the camera connection stays active even when ethernet 
 - **Resolution:** 640x360 (camera native)
 - **Bandwidth:** ~1-2 Mbps per client
 
-## Files
-
-- `rpi_server.py` - Main server application
-- `windows_client.py` - Python GUI client
-- `index.html` / `viewer.js` - Web interface
-- `sionyx_wifi_watchdog.py` - WiFi connection manager
-- `install_rpi.sh` - Automated installer
-
 ## Troubleshooting
 
 **Camera not connecting:**
@@ -127,10 +119,6 @@ sudo systemctl restart sionyx-server
 iwgetid -r  # Should show: SiOnyx-7854D5
 ip addr show wlan0  # Should show: 192.168.0.128
 ```
-
-## License
-
-MIT License - See LICENSE file for details
 
 ## Acknowledgments
 
