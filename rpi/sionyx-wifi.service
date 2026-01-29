@@ -1,0 +1,16 @@
+[Unit]
+Description=SiOnyx WiFi Watchdog
+After=network.target NetworkManager.service
+Wants=NetworkManager.service
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/python3 /opt/sionyx/sionyx_wifi_watchdog.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
