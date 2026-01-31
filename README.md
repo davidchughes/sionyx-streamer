@@ -1,12 +1,16 @@
 # SiOnyx Streamer
 
-Low-latency network streaming and remote control for SiOnyx Aurora night vision cameras.
+Low-latency network streaming and remote control for SiOnyx Aurora night vision cameras for desktop and mobile viewing. Also it has Night Mode enhancement that highlight stars and puts an automatic contrast curve and noise floor for more useful night viewing.
 
 ## What It Does
 
-Turns a Raspberry Pi 5 into a streaming bridge for SiOnyx Aurora cameras, enabling remote viewing and control from any browser or Python client on your network.
+Turns a Raspberry Pi 4/5 into a streaming bridge for SiOnyx Aurora cameras, enabling remote viewing and control from any browser or Python client on your network.
 
-**Problem it solves:** SiOnyx Aurora cameras have WiFi but only support one direct connection through their mobile app. This project creates a network bridge so multiple devices can view and control the camera simultaneously over your existing network infrastructure.
+The Night Mode enhancement stacks 6 frames and uses some fancy dot finder algorithms to find really faint spots.  It works great with finding faint stars (at least magnitude 6) and aurora visibility.
+
+**Problem it solves:** SiOnyx Aurora cameras have weak WiFi but only support one direct connection through their mobile app. This project creates a network bridge so multiple devices can view and control the camera simultaneously over your existing network infrastructure.
+
+It also includes an offline version of the enhancements so you can process the full-res video files to see all the stars possible.  I'm too lazy to make it use the same core procesing as a lib so there is duplicated code.
 
 ## Features
 
@@ -39,10 +43,10 @@ SiOnyx Camera (WiFi) ←→ RPi5 (wlan0) ←→ RPi5 (eth0) ←→ Your Network
 ## Requirements
 
 **Hardware:**
-- Raspberry Pi 5 (4GB+ recommended)
-- SiOnyx Aurora camera (tested with Aurora Pro)
+- Raspberry Pi 4/5
+- SiOnyx Aurora (Pro) camera
 - Ethernet connection for RPi5
-- 2.4/5GHz WiFi capability on RPi5
+- 2.4 WiFi capability on RPi5
 
 **Software:**
 - Raspberry Pi OS (64-bit, Bookworm or later)
