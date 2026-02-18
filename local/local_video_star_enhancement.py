@@ -54,16 +54,16 @@ class RollingAccumulator:
     def __init__(self, maxlen, shape):
         self.maxlen = maxlen
         self.buffer = [np.zeros(shape, dtype=np.uint8) for _ in range(maxlen)]
-        self.running_sum = np.zeros(shape, dtype=np.uint32)
+        self.running_sum = np.zeros(shape, dtype=np.uint16)
         self.index = 0
         self.filled = 0
     
     def update(self, frame):
         if self.filled == self.maxlen:
-            self.running_sum -= self.buffer[self.index].astype(np.uint32)
+            self.running_sum -= self.buffer[self.index].astype(np.uint16)
         
         self.buffer[self.index] = frame
-        self.running_sum += frame.astype(np.uint32)
+        self.running_sum += frame.astype(np.uint16)
         
         self.index = (self.index + 1) % self.maxlen
         if self.filled < self.maxlen:
@@ -73,6 +73,9 @@ class RollingAccumulator:
         if self.filled == 0:
             return None
         return (self.running_sum // self.filled).astype(np.uint8)
+
+    def get_sum(self):
+        return (self.running_sum).astype(np.uint16) #//(np.sqrt(self.filled))
     
     def __len__(self):
         return self.filled
@@ -355,7 +358,7 @@ def TopHat_single_channel(image, _k=0):
     _temp3 = cv2.dilate(_muImg, kernel, borderValue=cv2.BORDER_ISOLATED)
     _temp_thresh3 = cv2.subtract(image, _temp3)
     low_contrast_dots = cv2.min(cv2.divide(_temp_thresh3, 2), 255)
-    return (low_contrast_dots * low_contrast_dots)
+    return (low_contrast_dots * low_contrast_dots)>>1
 
 TopHat__KERNELS = initialize_detection_kernels()
 
@@ -400,11 +403,11 @@ def preprocessing_worker(cap, output_queue, stop_event):
             
             # PREPROCESSING PIPELINE
             frames_acc.update(frame)
-            denoised = frames_acc.get_mean()
+            denoised = frames_acc.get_sum()
             if denoised is None:
                 denoised = frame
             
-            processed_clean = cleaner.process(denoised)
+            processed_clean = cleaner.process(frames_acc.get_mean())
             processed = black_proc.process(processed_clean)
             
             # Send to Stage 2
@@ -531,12 +534,13 @@ def process_video(video_path, save_path=None):
             b_admd = future_b.result()
             timer.end("admd")
             
+            min_clip = int(np.sqrt(HISTORY_LEN))
             timer.start("combine")
-            b_div = b_admd >> 2
-            g_div = g_admd >> 2
-            r_div = r_admd >> 2
+            b_div = b_admd >> min_clip
+            g_div = g_admd >> min_clip
+            r_div = r_admd >> min_clip
             mul = cv2.multiply(cv2.multiply(b_div, g_div), r_div)
-            sum_rgb = cv2.max(r_admd, cv2.max(g_admd, b_admd)) >> 1
+            sum_rgb = cv2.max(r_admd, cv2.max(g_admd, b_admd)) >> round(min_clip/2)
             sum_combined = cv2.min(cv2.max(sum_rgb, mul), 255).astype(np.uint8)
             timer.end("combine")
             
@@ -559,7 +563,7 @@ def process_video(video_path, save_path=None):
             timer.end("accum_multiply")
             
             timer.start("tophat")
-            accum_combined = TopHat_single_channel(accum_smoothed >> 7, 0) << 5 # sorry for the noise floor clip + signal boost hack but im lazy
+            accum_combined = TopHat_single_channel(accum_smoothed >> 7, 0) # sorry for the noise floor clip + signal boost hack but im lazy
             timer.end("tophat")
             
             # OVERLAY
@@ -581,15 +585,15 @@ def process_video(video_path, save_path=None):
                 
                 # Wait for both blurs to complete
                 accum_blurred = future_accum_blur.result()
-                rgb_enhanced = future_rgb_blur.result()
+                rgb_enhanced = future_rgb_blur.result()//4
                 
                 # Masks (these are fast)
-                mask_dark = (accum_combined > 1).astype(np.uint8) * 255
-                mask_bright = (accum_blurred > 256).astype(np.uint8) * 255
+                mask_dark = (accum_combined > 2).astype(np.uint8) * 4 // 3 # magic numbers to clip the sensor noise and boost the faint stars (magnitude <7 ish).  Maybe it should be sharpened?
+                mask_bright = (accum_blurred > 32).astype(np.uint8) # blurred glow of quite bright stars - magnitude < 5.2 ish
                 mask = cv2.max(mask_dark, mask_bright)
                 
-                stars_only = cv2.bitwise_and(rgb_enhanced, rgb_enhanced, mask=mask)
-                latest_dots_image = cv2.add(processed, stars_only)
+                stars_only = np.multiply(rgb_enhanced,np.dstack((mask,mask,mask))) #cv2.bitwise_and(rgb_enhanced, rgb_enhanced, mask=mask).astype(np.uint8)
+                latest_dots_image = cv2.add(stars_only, processed) #processed
             else:
                 latest_dots_image = processed_clean
             timer.end("overlay")
