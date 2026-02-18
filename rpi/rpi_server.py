@@ -254,7 +254,7 @@ def ADMD_single_channel_uint16(image, _k=2):
     """Pure uint16 ADMD - avoids float conversions"""
     img_half = image >> 1
 
-    kernels, shift = get_directional_kernels_uint16(_k+1)
+    kernels, shift = get_directional_kernels_uint16(_k)
 
     diffs = []
 
