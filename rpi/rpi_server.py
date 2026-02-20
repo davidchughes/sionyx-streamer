@@ -411,7 +411,7 @@ def TopHat_single_channel(image, _k=0):
     _temp_thresh3 = cv2.subtract(image, _temp3)
 
     low_contrast_dots = cv2.min(cv2.divide(_temp_thresh3, 2), 255)
-    return (low_contrast_dots * low_contrast_dots)
+    return (low_contrast_dots * low_contrast_dots) >> 1
 
 TopHat__KERNELS = initialize_detection_kernels()
 
