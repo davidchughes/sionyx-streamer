@@ -1,129 +1,122 @@
-# SiOnyx Streamer
+# sionyx-streamer
 
-Low-latency network streaming and remote control for SiOnyx Aurora night vision cameras for desktop and mobile viewing. Also it has Night Mode enhancement that highlight stars and puts an automatic contrast curve and noise floor for more useful night viewing.
+Live star enhancement and dot detection for the SiOnyx Aurora night vision camera.
 
-## What It Does
+There are two ways to use this software:
 
-Turns a Raspberry Pi 4/5 into a streaming bridge for SiOnyx Aurora cameras, enabling remote viewing and control from any browser or Python client on your network.
+- **RPi Server** -- a Raspberry Pi connects to your SiOnyx camera over WiFi and
+  streams an enhanced live view to any browser on your network.
+- **Local Video** (Windows) -- process a recorded video file on your PC.
 
-The Night Mode enhancement stacks 6 frames and uses some fancy dot finder algorithms to find really faint spots.  It works great with finding faint stars (at least magnitude 6) and aurora visibility.
+---
 
-**Problem it solves:** SiOnyx Aurora cameras have weak WiFi but only support one direct connection through their mobile app. This project creates a network bridge so multiple devices can view and control the camera simultaneously over your existing network infrastructure.
+## RPi Server Setup
 
-It also includes an offline version of the enhancements so you can process the full-res video files to see all the stars possible.  I'm too lazy to make it use the same core procesing as a lib so there is duplicated code.
+### What you need
 
-## Features
+- Raspberry Pi 4 or 5 with Raspberry Pi OS (64-bit recommended)
+- Ethernet cable connecting the RPi to your router
+- Your SiOnyx camera
 
-- **Sub-200ms latency** MJPEG streaming at 15fps (640x360)
-- **Remote control** - zoom, EIS, night modes, recording, photo capture
-- **Multi-client** - Multiple viewers can watch simultaneously
-- **Touch UI** - Responsive web interface for desktop and mobile
-- **Python client** - For custom applications and integrations
-- **Auto-recovery** - Automatic reconnection if camera or WiFi drops
+### One-time install
 
-## Architecture
+1. Copy the contents of the `rpi/` folder onto your Raspberry Pi.
+
+2. Open a terminal on the RPi and run:
+
+       cd sionyx-streamer/rpi
+       sudo bash install.sh
+
+3. The installer will ask for your camera's WiFi name (SSID).
+
+   **To find your SSID:** Put your SiOnyx camera into WiFi mode. The camera
+   screen will display a network name like `SiOnyx-7854D5`. Enter that exactly.
+   This network is hidden -- it will not appear in a normal WiFi scan. The camera
+   must be showing the SSID on screen or the RPi cannot connect.
+
+4. The installer will show you the RPi's IP address on your wired network before
+   making any changes. Write it down as a backup.
+
+5. Follow the prompts. The whole process takes about two minutes.
+
+### Accessing the stream
+
+Once installed, open a browser on any device on your network and go to:
+
+    http://sionyx.local:8080
+
+If that does not work on your router, use the IP address printed at the end of
+the install (e.g. `http://192.168.1.42:8080`).
+
+### How the camera connection works
+
+As long as the RPi is powered on, it will continuously look for the SiOnyx
+camera WiFi and connect automatically. You do not need to do anything on the RPi
+once it is set up.
+
+**If the stream is not working:**
+
+1. Put the camera into WiFi mode -- the SSID must be visible on the camera screen
+2. Clear any warnings on the camera (low battery alerts etc.)
+3. Within about 15 seconds of the SSID appearing on screen, the RPi should
+   connect and the stream should come up
+4. If it is still not working, turn the camera off and back to WiFi mode to reset
+   the connection
+
+### Useful commands
+
+Check whether the server is running:
+
+    sudo systemctl status sionyx-streamer
+
+Watch the live log output:
+
+    sudo journalctl -u sionyx-streamer -f
+
+Restart the server manually:
+
+    sudo systemctl restart sionyx-streamer
+
+---
+
+## Windows Local Video Processing
+
+### What you need
+
+- Windows PC
+- Python 3.10 or newer -- download from https://www.python.org/downloads/
+  (during install, tick "Add Python to PATH")
+- A recorded video file from your SiOnyx camera
+
+### One-time install
+
+Double-click `local/install_windows.bat`. This installs the required Python
+packages. It only needs to be run once.
+
+### Processing a video
+
+Drag any `.mp4` file onto `local/process_video.bat`.
+
+A preview window will open showing the enhanced output. You will be asked whether
+you want to save the result. Press `Q` in the preview window to quit.
+
+You can also double-click `process_video.bat` directly and type in the file path
+when prompted.
+
+---
+
+## Folder layout
 
 ```
-SiOnyx Camera (WiFi) ←→ RPi5 (wlan0) ←→ RPi5 (eth0) ←→ Your Network
-                                ↓
-                         HTTP Server (port 8080)
-                                ↓
-                    ┌───────────┴───────────┐
-                    ↓                       ↓
-            Browser Clients          Python Client
+sionyx-streamer/
+    rpi/
+        install.sh                  RPi installer -- run once with sudo
+        camera_config.txt           Camera SSID config -- written by installer
+        rpi_server.py               Server application
+        index.html                  Web interface
+        viewer.js                   Web interface
+    local/
+        install_windows.bat         Windows installer -- run once
+        process_video.bat           Drag video files onto this
+        local_video_star_enhancement.py
 ```
-
-**Components:**
-- **Camera Session** - Manages SiOnyx API communication
-- **UDP Receiver** - Captures MJPEG stream from camera
-- **HTTP Server** - Serves video and control endpoints
-- **WiFi Watchdog** - Maintains camera WiFi connection alongside ethernet
-- **Web UI** - Touch-friendly remote control interface
-
-## Requirements
-
-**Hardware:**
-- Raspberry Pi 4/5
-- SiOnyx Aurora (Pro) camera
-- Ethernet connection for RPi5
-- 2.4 WiFi capability on RPi5
-
-**Software:**
-- Raspberry Pi OS (64-bit, Bookworm or later)
-- Python 3.9+
-- NetworkManager
-
-## Quick Start
-
-1. **Install on RPi5:**
-```bash
-cd /path/to/sionyx-streamer
-sudo ./install_rpi.sh
-sudo systemctl enable sionyx-server sionyx-wifi
-sudo systemctl start sionyx-server sionyx-wifi
-```
-
-2. **Access from browser:**
-```
-http://sionyx.local:8080/
-```
-
-3. **Or use Python client:**
-```bash
-python windows_client.py
-```
-
-## Network Configuration
-
-The system maintains two simultaneous network connections:
-- **wlan0** - Connected to SiOnyx camera WiFi (hidden SSID, DHCP assigns 192.168.0.128)
-- **eth0** - Connected to your local network for client access
-
-The WiFi watchdog ensures the camera connection stays active even when ethernet provides internet.
-
-## Controls
-
-**Web Interface:**
-- Record/Stop toggle
-- Photo capture
-- Electronic Image Stabilization (EIS)
-- Digital zoom (1.0x - 3.0x)
-- Night modes (Color, Green, Grayscale)
-- Fullscreen toggle
-
-**Keyboard shortcuts:**
-- Space - Photo
-- R - Record toggle
-- E - EIS toggle
-- Q - Reload page
-
-## Performance
-
-- **Latency:** <200ms end-to-end (camera to display)
-- **Frame rate:** 30fps display, 15fps camera source
-- **Resolution:** 640x360 (camera native)
-- **Bandwidth:** ~1-2 Mbps per client
-
-## Troubleshooting
-
-**Camera not connecting:**
-```bash
-sudo journalctl -u sionyx-wifi -f
-sudo systemctl restart sionyx-wifi
-```
-
-**Stream not showing:**
-```bash
-sudo journalctl -u sionyx-server -f
-sudo systemctl restart sionyx-server
-```
-
-**Check WiFi connection:**
-```bash
-iwgetid -r  # Should show: SiOnyx-7854D5
-ip addr show wlan0  # Should show: 192.168.0.128
-```
-
-## Acknowledgments
-
-Reverse-engineered SiOnyx Aurora camera protocol through network analysis and experimentation.
