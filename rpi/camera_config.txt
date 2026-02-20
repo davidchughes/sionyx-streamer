@@ -1,0 +1,8 @@
+# Put the camera into WiFi mode and look at the camera display --
+# it will show something like "SiOnyx-7854D5". Enter that name below exactly.
+#
+# NOTE: This network is hidden and will not appear in a normal WiFi scan.
+# The camera MUST be displaying the SSID on screen or the connection will fail.
+# Clear warnings like low battery with the enter button
+
+CAMERA_SSID = SiOnyx-7854D5

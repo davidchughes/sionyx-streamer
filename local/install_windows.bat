@@ -1,44 +1,53 @@
 @echo off
-REM SiOnyx Aurora Windows Client Installation Script
+:: ==============================================================================
+::  SiOnyx Streamer -- Windows Installer
+::  Double-click this once to install everything needed.
+:: ==============================================================================
 
-echo ================================
-echo SiOnyx Aurora Client Installer
-echo ================================
+echo.
+echo ============================================================
+echo   SiOnyx Streamer -- Windows Installer
+echo ============================================================
 echo.
 
-REM Check for Python
+:: Check Python is available
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ERROR: Python is not installed!
-    echo Please install Python from https://www.python.org/
+    echo   Python was not found.
+    echo.
+    echo   Please install Python 3.10 or newer from:
+    echo     https://www.python.org/downloads/
+    echo.
+    echo   During install, make sure to tick:
+    echo     "Add Python to PATH"
+    echo.
+    echo   Then run this installer again.
+    echo.
     pause
     exit /b 1
 )
 
-echo [1/3] Installing dependencies...
-pip install opencv-python numpy requests
-
-echo.
-echo [2/3] Creating desktop shortcut...
-set SCRIPT_DIR=%~dp0
-set SHORTCUT_PATH=%USERPROFILE%\Desktop\SiOnyx Aurora.lnk
-
-powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%SHORTCUT_PATH%'); $s.TargetPath = 'python'; $s.Arguments = '%SCRIPT_DIR%windows_client.py'; $s.WorkingDirectory = '%SCRIPT_DIR%'; $s.Save()"
-
-echo.
-echo [3/3] Configuration...
-echo.
-echo Please edit windows_client.py and set your RPi IP address:
-echo   SERVER_IP = "192.168.1.100"  # Change this to your RPi IP
+echo   Python found. Installing required packages...
 echo.
 
-echo ================================
-echo Installation Complete!
-echo ================================
+pip install opencv-python numpy --quiet
+
+if errorlevel 1 (
+    echo.
+    echo   Something went wrong installing packages.
+    echo   Try running this file as Administrator.
+    echo.
+    pause
+    exit /b 1
+)
+
 echo.
-echo Desktop shortcut created: SiOnyx Aurora
+echo ============================================================
+echo   Installation complete.
 echo.
-echo Or run manually:
-echo   python windows_client.py
+echo   To process a video file:
+echo     Drag any .mp4 file onto "process_video.bat"
+echo     Or double-click "process_video.bat" and follow the prompt.
+echo ============================================================
 echo.
 pause
