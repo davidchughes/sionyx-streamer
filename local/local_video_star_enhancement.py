@@ -453,7 +453,7 @@ def process_video(video_path, save_path=None, avg_frames=8):
                 print(f"[Stage2] Initialized for {w}×{h}")
 
                 if save_path:
-                    fourcc = cv2.VideoWriter_fourcc(*'avc1')
+                    fourcc = cv2.VideoWriter_fourcc(*'avc1') # TODO: make a higher quality save file!
                     video_writer = cv2.VideoWriter(save_path, fourcc, fps, (w, h))
                     if video_writer.isOpened():
                         print(f"[Stage2] Recording to {save_path}")
