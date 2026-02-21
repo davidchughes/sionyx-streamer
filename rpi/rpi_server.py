@@ -3,12 +3,12 @@
 SiOnyx Aurora RPi5 Server with STREAMLINED ADMD Dot Detection
 - STREAMLINED PROCESSING: Chroma denoise → Shadow desat → Soft-knee black
 - MULTI-THREADED R/G/B ADMD processing
-- UINT16 rolling accumulator with running sum
+- UINT16 rolling accumulator with running sum (dynamic resize on-the-fly)
 - THREADED overlay blur operations
 - Natural, film-like results
 
 STREAMLINED PIPELINE:
-1. Temporal Averaging (8 frames, uint16 sum)
+1. Temporal Averaging (2/4/8/16 frames, uint16 sum) ← runtime adjustable
 2. Chroma Denoising (25×17 YUV blur - removes color splotches)
 3. Shadow Desaturation (LAB space - neutralizes dark green)
 4. Soft-Knee Black Level (gradient-preserving - no banding)
@@ -79,8 +79,9 @@ status_lock = threading.Lock()
 latest_dots_image = None
 dots_image_lock = threading.Lock()
 
-# Frame history for temporal filtering
+# Frame history for temporal filtering — runtime adjustable (2/4/8/16)
 HISTORY_LEN = 8
+VALID_HISTORY_LENS = {2, 4, 8, 16, 32, 64, 128}
 
 # Pipeline queues - 2-stage architecture
 processed_queue = queue.Queue(maxsize=2)  # Stage1 output → Stage2 input
@@ -108,9 +109,10 @@ class RollingAccumulator:
 
     def __init__(self, maxlen, shape):
         self.maxlen = maxlen
+        self.shape  = shape
         self.buffer = [np.zeros(shape, dtype=np.uint8) for _ in range(maxlen)]
         self.running_sum = np.zeros(shape, dtype=np.uint16)
-        self.index = 0
+        self.index  = 0
         self.filled = 0
 
     def update(self, frame):
@@ -133,6 +135,41 @@ class RollingAccumulator:
 
     def get_sum(self):
         return (self.running_sum).astype(np.uint16)
+
+    def resize(self, new_maxlen):
+        """
+        Safely resize the accumulator on-the-fly.
+        Keeps the most recent min(filled, new_maxlen) frames so the pipeline
+        never crashes mid-stream — it just warms up over the next few frames.
+        """
+        if new_maxlen == self.maxlen:
+            return
+
+        # Collect existing frames oldest→newest
+        if self.filled > 0:
+            start  = (self.index - self.filled) % self.maxlen
+            frames = [
+                self.buffer[(start + i) % self.maxlen].copy()
+                for i in range(self.filled)
+            ]
+            # Keep only the newest min(filled, new_maxlen) frames
+            keep = frames[-min(self.filled, new_maxlen):]
+        else:
+            keep = []
+
+        # Re-initialise storage
+        self.maxlen      = new_maxlen
+        self.buffer      = [np.zeros(self.shape, dtype=np.uint8) for _ in range(new_maxlen)]
+        self.running_sum = np.zeros(self.shape, dtype=np.uint16)
+        self.index       = 0
+        self.filled      = 0
+
+        # Replay kept frames into fresh accumulator
+        for f in keep:
+            self.update(f)
+
+        print(f"[Accumulator] Resized → {new_maxlen} frames  "
+              f"(kept {len(keep)} historical frames)")
 
     def __len__(self):
         return self.filled
@@ -229,51 +266,6 @@ class FastContrastProcessor:
 # OPTIMIZED UINT16 ADMD (NO FLOAT CONVERSIONS)
 # ============================================================================
 
-# ============================================================================
-# ADMD
-# ============================================================================
-
-# def get_directional_kernels_uint16(k):
-#     size = 3 + 2 * k
-#     center = size // 2
-#     kernels = []
-#     #directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
-#     directions = [
-#         (0, 1), (1, 1), (1, 0), (1, -1), 
-#         (0, -1), (-1, -1), (-1, 0), (-1, 1)
-#     ]
-#     for dx, dy in directions:
-#         kern = np.zeros((size, size), np.int16)
-#         for i in range(1, center + 1):
-#             kern[center + (i * dy), center + (i * dx)] = 1
-#         kernels.append(kern)
-#     kernel_sum = int(np.sum(kernels[0]))
-#     shift_amount = 1 if kernel_sum == 2 else 0
-#     return kernels, shift_amount
-
-# def ADMD_single_channel_uint16(image, _k=2):
-#     img_half = image >> 1
-#     kernels, shift = get_directional_kernels_uint16(_k+1)
-#     diffs = []
-#     for kern in kernels:
-#         directional_sum = cv2.filter2D(img_half, cv2.CV_16U, kern, borderType=cv2.BORDER_REPLICATE)
-#         if shift > 0:
-#             directional_mean = directional_sum >> shift
-#         else:
-#             directional_mean = directional_sum
-#         diff = cv2.absdiff(img_half, directional_mean)
-#         diffs.append(diff)
-#     admd_map = diffs[0]
-#     for i in range(1, len(diffs)):
-#         admd_map = cv2.min(admd_map, diffs[i])
-#     low_contrast_dots = cv2.min(admd_map, 255).astype(np.uint16)
-#     ADMD_image = ((low_contrast_dots * low_contrast_dots) >> 1)
-#     return ADMD_image
-
-# ============================================================================
-# OPTIMIZED UINT16 ADMD - MODULE LEVEL CACHES
-# ============================================================================
-
 # Thread-safe caches for kernels and buffers
 _PRECOMPUTED_KERNELS = {}
 _KERNEL_LOCK = threading.Lock()
@@ -286,94 +278,66 @@ def get_or_create_kernels(k):
     Thread-safe kernel cache.
     Precomputes directional kernels once and reuses them.
     """
-    if k not in _PRECOMPUTED_KERNELS:
-        with _KERNEL_LOCK:
-            # Double-check pattern for thread safety
-            if k not in _PRECOMPUTED_KERNELS:
-                size = 3 + 2 * k
-                center = size // 2
-                kernels = []
-                
-                # 8 directional kernels (including diagonals)
-                directions = [
-                    (0, 1), (1, 1), (1, 0), (1, -1), 
-                    (0, -1), (-1, -1), (-1, 0), (-1, 1)
-                ]
-                
-                for dx, dy in directions:
-                    kern = np.zeros((size, size), np.int16)
-                    for i in range(1, center + 1):
-                        kern[center + (i * dy), center + (i * dx)] = 1
-                    kernels.append(kern)
-                
-                kernel_sum = int(np.sum(kernels[0]))
-                shift_amount = 1 if kernel_sum == 2 else 0
-                
-                _PRECOMPUTED_KERNELS[k] = (kernels, shift_amount)
-                print(f"[ADMD] Precomputed kernels for k={k}, size={size}x{size}, shift={shift_amount}")
-    
-    return _PRECOMPUTED_KERNELS[k]
+    with _KERNEL_LOCK:
+        if k in _PRECOMPUTED_KERNELS:
+            return _PRECOMPUTED_KERNELS[k]
 
-def get_admd_buffers(shape):
-    """
-    Thread-safe buffer cache.
-    Pre-allocates arrays to avoid repeated memory allocation.
-    Returns 8 diff buffers (one per direction).
-    """
-    key = shape
-    if key not in _ADMD_BUFFERS:
-        with _BUFFER_LOCK:
-            if key not in _ADMD_BUFFERS:
-                # Pre-allocate 8 diff buffers
-                _ADMD_BUFFERS[key] = [
-                    np.empty(shape, dtype=np.uint16) for _ in range(8)
-                ]
-                print(f"[ADMD] Pre-allocated buffers for shape {shape}")
-    
-    return _ADMD_BUFFERS[key]
+        size = 3 + 2 * k
+        center = size // 2
+        directions = [
+            (0, 1), (1, 1), (1, 0), (1, -1),
+            (0, -1), (-1, -1), (-1, 0), (-1, 1)
+        ]
+        kernels = []
+        for dx, dy in directions:
+            kern = np.zeros((size, size), np.float32)
+            for i in range(1, center + 1):
+                kern[center + (i * dy), center + (i * dx)] = 1
+            kernels.append(kern)
+
+        kernel_sum = int(np.sum(kernels[0]))
+        shift_amount = 1 if kernel_sum == 2 else 0
+
+        _PRECOMPUTED_KERNELS[k] = (kernels, shift_amount)
+        return kernels, shift_amount
 
 def ADMD_single_channel_uint16(image, _k=0):
     """
-    Optimized ADMD with:
-    - Precomputed kernels (no repeated kernel generation)
-    - Vectorized minimum operation (faster than sequential cv2.min)
-    - Fused operations (fewer intermediate arrays)
-    - Pre-allocated buffers (reduced memory allocation overhead)
-    Each of the 8 filter2D operations runs in parallel.
-    
+    Optimized ADMD for uint16 images using precomputed kernels.
+
     Args:
         image: uint16 input image (single channel)
         _k: Kernel size parameter (0 = 3x3, 1 = 5x5, 2 = 7x7)
-    
+
     Returns:
         uint16 ADMD response map
     """
     img_half = image >> 1
     kernels, shift = get_or_create_kernels(_k)
-    
+
     def compute_single_direction(kern):
         """Single direction computation - runs in parallel"""
         directional_sum = cv2.filter2D(
-            img_half, 
-            cv2.CV_16U, 
-            kern, 
+            img_half,
+            cv2.CV_16U,
+            kern,
             borderType=cv2.BORDER_REPLICATE
         )
-        
+
         if shift > 0:
             return cv2.absdiff(img_half, directional_sum >> shift)
         else:
             return cv2.absdiff(img_half, directional_sum)
-    
+
     # Submit all 8 directions to thread pool
     futures = [
-        direction_executor.submit(compute_single_direction, kern) 
+        direction_executor.submit(compute_single_direction, kern)
         for kern in kernels
     ]
-    
+
     # Gather results
     diffs = [f.result() for f in futures]
-    
+
     # Vectorized minimum
     admd_map = np.minimum.reduce(diffs)
     low_contrast_dots = np.minimum(admd_map, 255).astype(np.uint16)
@@ -480,6 +444,12 @@ def stage1_worker():
 
                 print(f"[Stage1] Initialized for {w}×{h}×{c}")
 
+            # ── Dynamic HISTORY_LEN resize ───────────────────────────────────
+            with status_lock:
+                desired_len = HISTORY_LEN
+            if frames_acc.maxlen != desired_len:
+                frames_acc.resize(desired_len)
+
             # Update dark mode if changed
             with status_lock:
                 if contrast_proc.dark_mode != dark_mode:
@@ -547,6 +517,13 @@ def detection_worker():
                 dots_acc_1 = RollingAccumulator(HISTORY_LEN, (h, w))
                 dots_acc_2 = RollingAccumulator(HISTORY_LEN, (h, w))
                 print(f"[Stage2] Initialized for {w}×{h}")
+
+            # ── Dynamic HISTORY_LEN resize ───────────────────────────────────
+            with status_lock:
+                desired_len = HISTORY_LEN
+            if dots_acc_1.maxlen != desired_len:
+                dots_acc_1.resize(desired_len)
+                dots_acc_2.resize(desired_len)
 
             # Get current dark mode
             with status_lock:
@@ -885,7 +862,8 @@ class ControlHandler:
                 'dot_min_z_score': dot_min_z_score,
                 'dot_min_distance': dot_min_distance,
                 'detect_dark_spots': detect_dark_spots,
-                'dot_edge_crop': dot_edge_crop
+                'dot_edge_crop': dot_edge_crop,
+                'history_len': HISTORY_LEN,
             }
 
     @staticmethod
@@ -918,7 +896,7 @@ def process_command(cmd):
     """Process incoming command dict"""
     global dark_mode, dot_detection_enabled, dot_min_radius, dot_max_dots
     global dot_min_z_score, dot_min_distance, detect_dark_spots, dot_edge_crop
-    global recording, liveview_active
+    global recording, liveview_active, HISTORY_LEN
 
     action = cmd.get('action', '')
 
@@ -949,6 +927,15 @@ def process_command(cmd):
         with status_lock:
             dark_mode = value
         return {'success': True, 'dark_mode': dark_mode}
+
+    elif action == 'set_history_len':
+        value = int(cmd.get('value', 8))
+        if value not in VALID_HISTORY_LENS:
+            return {'success': False, 'error': f'Invalid value {value}. Must be one of {sorted(VALID_HISTORY_LENS)}'}
+        with status_lock:
+            HISTORY_LEN = value
+        print(f"[Cmd] HISTORY_LEN → {value}")
+        return {'success': True, 'history_len': value}
 
     elif action == 'reset_camera_connection':
         global liveview_active, camera_connected
@@ -1070,7 +1057,8 @@ class MJPEGStreamHandler(BaseHTTPRequestHandler):
                 'dot_min_z_score': dot_min_z_score,
                 'dot_min_distance': dot_min_distance,
                 'detect_dark_spots': detect_dark_spots,
-                'dot_edge_crop': dot_edge_crop
+                'dot_edge_crop': dot_edge_crop,
+                'history_len': HISTORY_LEN,
             }
 
     def do_GET(self):
@@ -1349,6 +1337,7 @@ if __name__ == "__main__":
     print("  • Dark/Light mode toggle via command")
     print("  • Parallel ADMD processing (R/G/B)")
     print("  • Natural film-like output")
+    print(f"  • Dynamic averaging window (default {HISTORY_LEN} frames, valid: {sorted(VALID_HISTORY_LENS)})")
     print()
 
     # Setup routing

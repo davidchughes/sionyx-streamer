@@ -34,7 +34,7 @@ html, body {
 #mjpeg {
   width:100%;
   height:100%;
-  object-fit: contain;      /* maintain native aspect ratio */
+  object-fit: contain;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -78,7 +78,6 @@ html, body {
   height:100%;
 }
 
-/* in tall becomes top horizontal bar */
 .tall #status-bar {
   flex-direction:row;
   align-items:center;
@@ -93,7 +92,6 @@ html, body {
   justify-content:space-between;
 }
 
-/* tall bottom horizontal */
 .tall #ctrl-col {
   flex-direction:row;
   align-items:center;
@@ -116,7 +114,7 @@ html, body {
   user-select:none;
   font-weight:800;
 
-  border-radius:12px;        /* rounded corners */
+  border-radius:12px;
 }
 
 .btn.active { border-color:#0a84ff; }
@@ -134,12 +132,10 @@ html, body {
   gap:5px;
 }
 
-/* wide: vertical stack */
 .wide #top-btns {
   flex-direction:column;
 }
 
-/* tall: horizontal */
 .tall #top-btns {
   flex-direction:row;
 }
@@ -154,21 +150,18 @@ html, body {
   gap:8px;
 }
 
-/* rotated element centered in wide column */
 .wide #zoom {
-  width:250px;
+  width:200px;
   transform: rotate(-90deg) translate(-125px);
   transform-origin:left;
   margin:auto;
 }
 
-/* horizontal element centered in tall row */
 .tall #zoom {
   width:40%;
   height:80%;
 }
 
-/* zoom number blow slider in tall (spec) */
 .tall #zoom-disp {
   order:1;
 }
@@ -179,19 +172,110 @@ html, body {
   height:32px;
 }
 
+/* ---- AVERAGING WINDOW  [-] N [+]  CONTROL ---- */
+#history-ctrl {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 4px;
+}
+
+/* wide: label on top, stepper below */
+.wide #history-ctrl {
+  flex-direction: column;
+}
+
+/* tall: label left, stepper right */
+.tall #history-ctrl {
+  flex-direction: row;
+  margin: 0 4px;
+}
+
+/*#history-ctrl .h-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #888;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.wide #history-ctrl .h-label {
+  text-align: center;
+}
+*/
+/* wide: stepper is horizontal  [-] N [+] */
+#history-stepper {
+  flex-direction: column-reverse;
+}
+
+/* tall/landscape: stepper is vertical — [+] on top, N middle, [-] bottom
+   column-reverse flips DOM order [−, val, +] → [+, val, −]           */
+.tall #history-stepper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 3px;
+}
+
+/* [-] and [+] buttons */
+.h-step {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #444;
+  background: #0a0a0a;
+  color: #ccc;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.h-step:active {
+  background: #1c1c1e;
+  border-color: #666;
+}
+
+.h-step.disabled {
+  opacity: 0.22;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* value readout */
+#history-val {
+  min-width: 26px;
+  height: 24px;
+  border: 2px solid #30d158;
+  border-radius: 7px;
+  background: #0a0a0a;
+  color: #30d158;
+  font-size: 11px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
 /* ---- COLOR SELECTOR SIZE SAME AS BUTTONS ---- */
 #color-btns {
   display:flex;
   gap:10px;
 }
 
-/* wide vertical */
 .wide #color-btns {
   flex-direction:column;
   margin-top: auto;
 }
 
-/* tall horizontal */
 .tall #color-btns {
   flex-direction:row;
   margin-left:auto;
@@ -205,6 +289,7 @@ html, body {
   -webkit-touch-callout: none;
   touch-action: manipulation;
 }
+
 .color-item {
   width:35px;
   height:35px;
@@ -229,7 +314,7 @@ html, body {
 
 /* ---- DARK MODE TOGGLE ---- */
 #btn-darkmode.active {
-  border-color: #ffd60a;   /* warm yellow for visibility */
+  border-color: #ffd60a;
 }
 
 /* ---- RECONNECT BUTTON ---- */
@@ -244,23 +329,21 @@ html, body {
 
 /* Style the track */
 input[type="range"]::-webkit-slider-runnable-track {
-  background: #111111; /* Grey background for the track */
+  background: #111111;
   height: 10px;
   border-radius: 5px;
   cursor: pointer;
 }
 
-/* Style the thumb */
 input[type="range"]::-webkit-slider-thumb {
-  background: #4CAF50; /* Green background for the thumb */
+  background: #4CAF50;
   height: 20px;
   width: 20px;
-  border-radius: 50%; /* Makes it a circle */
+  border-radius: 50%;
   cursor: pointer;
-  margin-top: -5px; /* Vertically centers the thumb on the track */
+  margin-top: -5px;
 }
 
-/* Style the track */
 input[type="range"]::-moz-range-track {
   background: #111111;
   height: 10px;
@@ -268,14 +351,12 @@ input[type="range"]::-moz-range-track {
   cursor: pointer;
 }
 
-/* Style the thumb */
 input[type="range"]::-moz-range-thumb {
   background: #4CAF50;
   height: 20px;
   width: 20px;
   border-radius: 50%;
   cursor: pointer;
-  /* Mozilla typically doesn't need a negative margin for centering */
 }
 </style>
 </head>
@@ -302,13 +383,19 @@ input[type="range"]::-moz-range-thumb {
         <div id="zoom-disp">1.0x</div>
      </div>
 
+     <!-- AVERAGING WINDOW  [-] N [+] -->
+     <div id="history-ctrl">
+       <div id="history-stepper">
+         <div class="h-step" id="btn-history-dec">−</div>
+         <div id="history-val">8</div>
+         <div class="h-step" id="btn-history-inc">+</div>
+       </div>
+     </div>
+
      <div class="btn" id="btn-streammode" title="Toggle raw / enhanced stream"> Fx </div>
      <!-- Reconnect stream -->
-      <div class="btn" id="btn-reconnect" title="Reconnect stream">⟳</div>
+     <div class="btn" id="btn-reconnect" title="Reconnect stream">⟳</div>
 
-     <!-- <div id="fps-area">
-        <span id="fps-text">-- fps</span>
-     </div> -->
   </div>
 
   <div></div>
@@ -316,14 +403,14 @@ input[type="range"]::-moz-range-thumb {
   <!-- CONTROLS RIGHT COLUMN / BOTTOM ROW -->
   <div id="ctrl-col" class="panel">
 
-     <!-- recording / photo / eis TOGGLES RESTORED -->
+     <!-- recording / photo / eis TOGGLES -->
      <div id="color-btns">
         <div class="btn" id="btn-record">🔴</div>
         <div class="btn" id="btn-photo">📷</div>
         <div class="btn" id="btn-eis">E</div>
      </div>
 
-     <!-- COLOR SELECTOR FUNCTIONALITY -->
+     <!-- COLOR SELECTOR + DARK MODE -->
      <div id="color-btns">
       <div class="color-item rgb"   data-mode="NightColor"></div>
       <div class="color-item mono"  data-mode="GrayScale"></div>
@@ -331,8 +418,6 @@ input[type="range"]::-moz-range-thumb {
 
       <!-- Light / Dark mode toggle -->
       <div class="btn" id="btn-darkmode" title="Toggle enhancement mode">🌙</div>
-      
-      
     </div>
 
   </div>

@@ -1,12 +1,18 @@
 # sionyx-streamer
 
+The SiOnyx app kinda works but this is much better.  With a Raspberry Pi plugged into your network, you can live stream video from the camera's wireless mode, control it, and enhance the image for night scenes from any phone or computer on the network at http://sionyx:8080. The default SiOnyx live view is very glitchy with its mjpg stream so this page is a much more robust way to view it. This web interface lets you see the RAW and the FX enhanced stream. Within the FX stream you can select between light and dark mode.  Dark mode does a lot for seeing stars. This web interface also controls zoom, record, photo, and change color modes. Keep the camera quite close to the Raspberry Pi since its wifi is weak and it will drop frames.
+
+The SiOnyx sensor has an unusual low-light response curve that produces false color in dark areas — blacks tend to be quite red, green, or blue. Correcting this with a simple curves adjustment throws away detail. The dark mode enhancement in this software handles that more carefully: it lifts signal of small dots while keeping the background fairly black as you'd expect from in astrophotography.
+In practice this means you can watch satellites, shooting stars, and see the aurora clearly. It reliably picks up magnitude -5.5 stars and often reaches -7.0 and star colors are often preserved. To smooth out MJPEG compression noise and prevent stars from flickering in and out, frames are averaged over 8 frames by default — still responsive enough to feel like a live view.
+The detection algorithm uses ADMD (a small-target detection technique) alongside custom processing. so one inherent limitation is stars within about 2 pixels of each other may be shown as a single point rather than resolved individually but the Pleiades cluster comes through well though. You can run this enhancement on a local machine with the recorded .mov files as well for higher quality and resolution.
+
 Live star enhancement and dot detection for the SiOnyx Aurora night vision camera.
 
 There are two ways to use this software:
 
 - **RPi Server** -- a Raspberry Pi connects to your SiOnyx camera over WiFi and
   streams an enhanced live view to any browser on your network.
-- **Local Video** (Windows) -- process a recorded video file on your PC.
+- **Local Video** (Windows .bat/Linux/Mac) -- process a recorded video file on your PC.
 
 ---
 
