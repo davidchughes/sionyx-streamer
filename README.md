@@ -1,25 +1,23 @@
 # sionyx-streamer
 
-Live star enhancement and dot detection for the SiOnyx Aurora night vision camera.
+Live video stream controls and star viewing enhancement for the SiOnyx Aurora night vision camera.
 
 ![browser interface](interface.jpg)
 The SiOnyx app kinda works but this is much better.  With a Raspberry Pi plugged into your network, you can live stream video from the camera's wireless mode, control it, and enhance the image for night scenes from any phone or computer on the network at http://sionyx:8080. The default SiOnyx live view is very glitchy with its mjpg stream so this page is a much more robust way to view it. This web interface lets you see the RAW and the FX enhanced stream. Within the FX stream you can select between light and dark mode.  Dark mode does a lot for seeing stars. This web interface also controls zoom, record, photo, and change color modes. Keep the camera quite close to the Raspberry Pi since its wifi is weak and it will drop frames.
 ![Orion RAW vs FX Dark](Orion_side_by_side.gif)
-The SiOnyx sensor has an unusual low-light response curve that produces false color in dark areas — blacks tend to be quite red, green, or blue. Correcting this with a simple curves adjustment throws away detail. The dark mode enhancement in this software handles that more carefully: it lifts signal of small dots while keeping the background fairly black as you'd expect from in astrophotography.
+The SiOnyx sensor has an unusual low-light response curve that produces false color in dark areas - blacks tend to be quite red, green, or blue. Correcting this with a simple curves adjustment throws away detail. The dark mode enhancement in this software handles that more carefully: it lifts signal of small dots while keeping the background fairly black as you'd expect in astrophotography.
 ![Aurora at 38deg](Aurora.png)
-In practice this means you can watch satellites, shooting stars, and see the aurora clearly. It reliably picks up magnitude -5.0 stars and often reaches -6.8 and star colors are occasionally preserved. To smooth out MJPEG compression noise and prevent stars from flickering in and out, frames are averaged over 8 frames by default — still responsive enough to feel like a live view.  You can select 2,4,6,8,16,32,64 and 128 frames to analyze at 15fps. The controls are kinda clunky but it works even on mobile!
+In practice this means you can watch satellites, shooting stars, and see the aurora clearly. It reliably picks up magnitude -5.0 stars and often reaches -6.8 and star colors are occasionally preserved. To smooth out MJPEG compression noise and prevent stars from flickering in and out, images are averaged over 8 frames of the 15fps stream by default - still responsive enough to feel like a live view.  You can select 2,4,6,8,16,32,64 and 128 frames to analyze. The controls are kinda clunky but it works even on mobile!
 
 The detection algorithm uses ADMD (a small-target detection technique) and some custom image processing so one inherent limitation is stars within about 2 pixels of each other may look like a single point but the Pleiades cluster comes through well though. You can run this enhancement on a local machine with the recorded .mov files as well for higher quality, resolution and framerate.
 
-The system is currently optimized for analyzing an average of 8 frames - there is more to do adjusting the noise floor on longer duration analysis but you can play with this yourself.  I think you can get magnitude -7.5 stars over 128 frames if you play with it but that's hardly live video at that point.
+The system is currently optimized for analyzing an average of 8 frames. There is more star data to see by adjusting the noise floor on longer duration analysis but you can play with this yourself.  I think you can get magnitude -7.5 stars over 128 frames if you play with it but that's hardly live video at that point.
 
 There are two ways to use this software:
 
 - **RPi Server** -- a Raspberry Pi connects to your SiOnyx camera over WiFi and
   streams an enhanced live view to any browser on your network.
 - **Local Video** (Windows .bat/Linux/Mac) -- process a recorded video file on your PC.
-
----
 
 ## RPi Server Setup
 
