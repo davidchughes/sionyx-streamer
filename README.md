@@ -14,8 +14,11 @@ G4 Aurora at 39°N 19 (The blue glow is the infrared from my phone in the room -
 
 With this live view you can track faint satellites, easily see shooting stars, and watch the aurora clearly in real time. It reliably picks up magnitude -5.0 stars and often reaches -6.8 and star colors are occasionally preserved. To smooth out MJPEG compression noise and prevent stars from flickering in and out, images are averaged over 8 frames of the 15fps stream by default - still responsive enough to feel like a live view.  You can select 2,4,6,8,16,32,64 and 128 frame stacks to analyze. The controls are kinda clunky but it works even on mobile!
 
-![frame stack size comparisons](durations.gif) ![8 frames vs stellarium](stellarium_compare.gif) 
+![frame stack size comparisons](durations.gif) 
+
 Above 8 highlights sensor artifacts
+
+![8 frames vs stellarium](stellarium_compare.gif) 
 
 
 The detection algorithm uses ADMD (a small-target detection technique) and some custom image processing so one inherent limitation is stars within about 2 pixels of each other may look like a single point but the Pleiades cluster comes through well. You can run this enhancement on a local machine with the recorded .mov files as well for higher quality, resolution, and framerate.  Use .MOV for export as it is the highest quality supported format.
