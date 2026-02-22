@@ -8,7 +8,8 @@ The SiOnyx app kinda works but this is much better.  With a Raspberry Pi plugged
 The SiOnyx sensor has an unusual low-light response curve that produces false color in dark areas; blacks tend to be quite green, or occasionally blue or red. Correcting this with a simple curves adjustment throws away detail. The dark mode enhancement lifts signal of small dots while keeping the background fairly black as you'd expect in astrophotography.
 
 ![Aurora at 39deg](Aurora.gif)
- G4 Aurora at 39°N 19 2026-01-19 (The blue glow is the infrared from my phone in the room - oops)
+
+G4 Aurora at 39°N 19 2026-01-19 (The blue glow is the infrared from my phone in the room - oops)
 
 In practice this means you can track faint satellites, easily see shooting stars, and watch the aurora clearly in real time. It reliably picks up magnitude -5.0 stars and often reaches -6.8 and star colors are occasionally preserved. To smooth out MJPEG compression noise and prevent stars from flickering in and out, images are averaged over 8 frames of the 15fps stream by default - still responsive enough to feel like a live view.  You can select 2,4,6,8,16,32,64 and 128 frame stacks to analyze. The controls are kinda clunky but it works even on mobile!
 
