@@ -612,18 +612,19 @@ def main():
         epilog='''
 Examples:
   python local_video_star_enhancement.py input.mp4
-  python local_video_star_enhancement.py input.mp4 -s output.mp4
+  python local_video_star_enhancement.py input.mp4 -s output.mov
   python local_video_star_enhancement.py input.mp4 -a 16
-  python local_video_star_enhancement.py input.mp4 -a 64 -s deep_stack.mp4
+  python local_video_star_enhancement.py input.mp4 -a 64 -s deep_stack.mov
+  python local_video_star_enhancement.py -a 2 -s saved_from_stream.mov
 
 Averaging frames:
   2   — fast response, more noise
   4   — light smoothing
   8   — default, good balance
-  16  — smoother, ~3s history at 5fps
-  32  — ~6s history, faint stars emerge
-  64  — ~13s history, maximum SNR
-  128 — ~25s history, ghosting on moving objects
+  16  — smoother, ~0.5s history at 30fps
+  32  — ~1s history, faint stars emerge
+  64  — ~2s history, probably maximum SNR
+  128 — ~4s history, even more stars?
 
 Controls:
   D - Toggle Dark/Light mode
