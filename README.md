@@ -104,17 +104,16 @@ Restart the server manually:
 
 ### What you need
 
-- Windows PC
 - Python 3.10 or newer -- download from https://www.python.org/downloads/
   (during install, tick "Add Python to PATH")
 - A recorded video file from your SiOnyx camera
 
-### One-time install
-
+### Windows - One-time install
 Double-click `local/install_windows.bat`. This installs the required Python
 packages. It only needs to be run once.
 
 ### Processing a video
+Windows:
 
 Drag any `.mp4` file onto `local/process_video.bat`.
 
@@ -123,6 +122,15 @@ you want to save the result. Press `Q` in the preview window to quit.
 
 You can also double-click `process_video.bat` directly and type in the file path
 when prompted.
+
+
+Linux / Mac:
+
+Command line examples
+  $ python local_video_star_enhancement.py input.mov -s output.mov
+  $ python local_video_star_enhancement.py input.mov -a 64 -s deep_stack.mov
+  $ python local_video_star_enhancement.py --avg 2 --save saved_from_stream.mov
+
 
 ---
 
