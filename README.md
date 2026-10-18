@@ -16,7 +16,7 @@ With this live view you can track faint satellites, easily see shooting stars, a
 
 ![frame stack size comparisons](durations.gif) 
 
-Above 8 highlights sensor artifacts
+Above 8 frames highlights sensor artifacts
 
 ![8 frames vs stellarium](stellarium_compare.gif) 
 
@@ -27,17 +27,19 @@ The system is currently optimized for analyzing an average of 8 frames. There is
 
 There are two ways to use this software:
 
-- **RPi Server** -- a Raspberry Pi connects to your SiOnyx camera over WiFi and
-  streams an enhanced live view to any browser on your network.
-- **Local Video** (Windows .bat/Linux/Mac) -- process a recorded video file on your PC.
+- **Streaming RPi Server** -- a Raspberry Pi (or Linux computer) connects to your SiOnyx camera over WiFi and
+  streams an enhanced live view and controls. Ideally you can bridge this to a local network for true remote streaming and control
+- **Offline Local Video** (Windows .bat/Linux/Mac) -- process a recorded video file on your PC.
+
+![Streaming or Offline setups](usecases.png) 
 
 ## RPi Server Setup
 
 ### What you need
 
-- Raspberry Pi 4 or 5 with Raspberry Pi OS (64-bit recommended)
-- Ethernet cable connecting the RPi to your router (for field use try a GL.iNet travel router but any wifi+ethernet solution should do)
 - Your SiOnyx Aurora camera (Sport and Pro confirmed to work)
+- Minimum hardware: Raspberry Pi 4 with Raspberry Pi OS (64-bit recommended)
+- If bridging, Ethernet cable connecting the RPi to your router (for field use try a GL.iNet travel router but any wifi+ethernet solution should do)
 
 ### One-time install
 
@@ -100,8 +102,11 @@ Restart the server manually:
 
 ---
 
-## Windows Local Video Processing
+## Local Video Processing
 
+Already have high-resolution recordings? Process them directly with these enhancements.
+Run the Python enhancement tools on Windows, macOS, or Linux. Feed them recorded footage and configure processing using command-line parameters.
+No live camera connection, Raspberry Pi, or networking setup required.
 ### What you need
 
 - Python 3.10 or newer -- download from https://www.python.org/downloads/
