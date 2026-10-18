@@ -4,15 +4,15 @@ Live video stream controls and star viewing enhancement for the SiOnyx Aurora ni
 
 ![browser interface](interface.gif)
 
-The SiOnyx app kinda works but this is much better.  With a Raspberry Pi plugged into your network, you can live stream video from the camera's wireless mode, control it, and enhance the image for night scenes from any phone or computer on the network at http://sionyx:8080. The default SiOnyx live view is very glitchy with its mjpg stream so this page is a much more robust way to view it. This web interface lets you see the RAW and the FX enhanced stream. Within the FX stream you can select between light and dark mode.  Dark mode does a lot for stargazing. This web interface controls zoom, record, photo, and color modes. Keep the camera within 6ft of the Raspberry Pi since its wifi is weak and will drop frames.
+The SiOnyx app kinda works but this is much better.  With a basic linux pc (Raspberry Pi) plugged into your network, you can live stream video from the camera's wireless mode, control it, and enhance the image for night scenes from any phone or computer on the network at http://sionyx:8080. The default SiOnyx live stream is very glitchy with a broken mjpg stream so this enhanced browser based control page is a much more robust way to view what the camera is seeing. This web interface provides a RAW and the FX enhanced stream. Within the FX stream you can select between light and dark mode.  Dark mode does a lot for stargazing. This web interface controls zoom, record, photo, and color modes. Keep the camera within 6ft of the Raspberry Pi since its wifi is weak and will drop or corrupt frames.
 
-The SiOnyx sensor has an unusual low-light response curve that produces false color in dark areas; blacks tend to be quite green, or occasionally blue or red. Correcting this with a simple curves adjustment throws away detail. The dark mode enhancement lifts signal of small dots while keeping the background fairly black as you'd expect in astrophotography.
+The SiOnyx sensor has an unusual low-light response curve that produces false color in dark areas; blacks tend to be quite green, or occasionally blue or red. Naively correcting this with a simple curves adjustment will throw away detail. The dark mode enhancement lifts signal of small dots while keeping the background fairly black as you'd expect in astrophotography.
 
 ![Aurora at 39deg](Aurora.gif)
 
 G4 Aurora at 39°N 19 (The blue glow is the infrared from my phone in the room - oops)
 
-With this live view you can track faint satellites, easily see shooting stars, and watch the aurora clearly in real time. It reliably picks up magnitude -5.0 stars and often reaches -6.8 and star colors are occasionally preserved. To smooth out MJPEG compression noise and prevent stars from flickering in and out, images are averaged over 8 frames of the 15fps stream by default - still responsive enough to feel like a live view.  You can select 2,4,6,8,16,32,64 and 128 frame stacks to analyze. The controls are kinda clunky but it works even on mobile!
+With this live view you can track faint satellites, easily see shooting stars, and watch the aurora clearly in real time. It reliably picks up magnitude -5.0 stars and often reaches -6.8 and star colors are often preserved. To smooth out MJPEG compression noise and prevent stars from flickering in and out, images are averaged over 8 frames of the 15fps stream by default - still responsive enough to feel like a live view.  You can select 2,4,6,8,16,32,64 and 128 frame stacks to analyze. The controls are kinda clunky but it works even on mobile!
 
 ![frame stack size comparisons](durations.gif) 
 
@@ -25,11 +25,14 @@ The detection algorithm uses ADMD (a small-target detection technique) and some 
 
 The system is currently optimized for analyzing an average of 8 frames. There is more star data to see by adjusting the noise floor on longer duration analysis but you can play with this in the code if you are so inclined.  I think you can get magnitude -7.5 stars over 128 frames but that's hardly live video at that point.
 
+### Configurations
+
 There are two ways to use this software:
 
-- **Streaming RPi Server** -- a Raspberry Pi (or Linux computer) connects to your SiOnyx camera over WiFi and
-  streams an enhanced live view and controls. Ideally you can bridge this to a local network for true remote streaming and control
-- **Offline Local Video** (Windows .bat/Linux/Mac) -- process a recorded video file on your PC.
+- **Streaming: RPi Server** -- a Raspberry Pi (or Linux computer) connects to your SiOnyx camera over WiFi and
+  streams an enhanced live view and controls. Ideally you can bridge this to a local network for true remote
+  streaming and control, but can run on just a Linux pc with wifi.
+- **Offline: Local Video** (Windows .bat/Linux/Mac) -- process a recorded video file on your PC.
 
 ![Streaming or Offline setups](usecases.png) 
 
