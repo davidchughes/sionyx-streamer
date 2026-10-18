@@ -147,7 +147,7 @@ Command line examples
   
     $ python local_video_star_enhancement.py --avg 2 --save saved_from_stream.mov
 
-  If you are running the the streamer already, you can not specify an input 
+  If you are running the the streamer already, you can skip specifying an input 
   file and record what the raw stream sees with its own enhancement params 
   seen here as saved_from_stream.mov.
 
