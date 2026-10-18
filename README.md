@@ -136,20 +136,20 @@ Linux / Mac:
 
 Command line examples
 
-  $ python local_video_star_enhancement.py input.mov -s output.mov
+    $ python local_video_star_enhancement.py input.mov -s output.mov
 
-    Loads input.mov and saves it with default enhancements to output.mov
+  Loads input.mov and saves it with default enhancements to output.mov
   
-  $ python local_video_star_enhancement.py input.mov -a 64 -s deep_stack.mov
+    $ python local_video_star_enhancement.py input.mov -a 64 -s deep_stack.mov
 
-    Loads input.mov and saves it with enhancements over an average (-a or --avg) 
-    of 64 frames of the video with the name deep_stack.mov.
+  Loads input.mov and saves it with enhancements over an average (-a or --avg) 
+  of 64 frames of the video with the name deep_stack.mov.
   
-  $ python local_video_star_enhancement.py --avg 2 --save saved_from_stream.mov
+    $ python local_video_star_enhancement.py --avg 2 --save saved_from_stream.mov
 
-    If you are running the the streamer already, you can not specify an input 
-    file and record what the raw stream sees with its own enhancement params 
-    seen here as saved_from_stream.mov.
+  If you are running the the streamer already, you can not specify an input 
+  file and record what the raw stream sees with its own enhancement params 
+  seen here as saved_from_stream.mov.
 
 
 ---
