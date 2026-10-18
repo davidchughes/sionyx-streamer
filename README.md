@@ -16,7 +16,7 @@ With this live view you can track faint satellites, easily see shooting stars, a
 
 ![frame stack size comparisons](durations.gif) 
 
-Above 8 frames highlights sensor artifacts
+8 frames seems ideal for general stargazing as longer durations highlight sensor artifacts
 
 ![8 frames vs stellarium](stellarium_compare.gif) 
 
@@ -25,7 +25,7 @@ The detection algorithm uses ADMD (a small-target detection technique) and some 
 
 The system is currently optimized for analyzing an average of 8 frames. There is more star data to see by adjusting the noise floor on longer duration analysis but you can play with this in the code if you are so inclined.  I think you can get magnitude -7.5 stars over 128 frames but that's hardly live video at that point.
 
-### Configurations
+# Configurations
 
 There are two ways to use this software:
 
