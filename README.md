@@ -123,7 +123,7 @@ packages. It only needs to be run once.
 ### Processing a video
 Windows:
 
-Drag any `.mp4` file onto `local/process_video.bat`.
+Drag any `.mov`, `.mp4`, etc file onto `local/process_video.bat`.
 
 A preview window will open showing the enhanced output. You will be asked whether
 you want to save the result. Press `Q` in the preview window to quit.
